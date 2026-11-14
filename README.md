@@ -1,6 +1,6 @@
 # rwuChat
 
-Ideal interface.
+The Ideal ai chat interface.
 
 ## Quick start
 
