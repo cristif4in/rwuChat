@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rwuChat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/settings.css">
+</head>
+<body>
+<div id="topbar">
+  <div class="tb-brand">
+    <span class="tb-dot"></span>
+    <h1>rwuChat<small>local</small></h1>
+  </div>
+  <button class="bt" id="all" aria-label="All chats" title="All chats (Ctrl/Cmd+K)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+  </button>
+  <div id="tabs" role="tablist"></div>
+  <button class="bt" id="plus" aria-label="New chat" title="New chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+  <div class="tb-actions">
+    <button class="ghost icon" id="gear" aria-label="Settings" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+    </button>
+  </div>
+</div>
+
+<main id="log" aria-live="polite">
+  <div class="col">
+    <section id="empty">
+      <h2>What do you want to work on?</h2>
+    </section>
+    <div id="msgs"></div>
+  </div>
+</main>
+
+<footer>
+  <div id="charwrap"><span id="charcount">0</span> / 42,512</div>
+  
+  <div class="composer-wrap">
+    <div class="menu" id="plus-menu">
+      <div class="menu-item" id="menu-ext">
+        External Services
+        <span class="chevron">&#9654;</span>
+        <div class="menu sub-menu" id="sub-menu">
+          <div class="menu-item" id="add-gmail">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="#ea4335"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.077l8.073-5.584C21.691 2.279 24 3.434 24 5.457z"/></svg>
+            Gmail
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form class="composer" id="form">
+      <button type="button" class="icon-btn" id="plus-btn" aria-label="Add attachment">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      
+      <div class="input-area">
+        <div id="tags"></div>
+        <textarea id="input" rows="1" placeholder="Message rwuChat" aria-label="Message" maxlength="42512"></textarea>
+      </div>
+      
+      <button id="send" type="submit" class="send-btn" aria-label="Send" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </form>
+  </div>
+</footer>
+
+<dialog id="dlg">
+  <div class="dh"><h2>Settings</h2><button class="ghost" id="close">Close</button></div>
+  <div class="ds">
+    <h3>System prompt</h3>
+    <div class="row col">
+      <textarea id="sys" placeholder="Optional. Additional instructions for the AI. Hardware and diff-editing rules are handled by the backend."></textarea>
+      <div class="row"><span style="font-size:12px;color:var(--muted)">Applies to the whole chat · saved locally</span>
+        <button class="ghost" id="sysreset" style="padding:4px 10px;font-size:12px">Clear</button></div>
+    </div>
+    
+    <div class="row" style="margin-top:8px">
+      <h3 style="margin:0">Theme</h3>
+      <button class="ghost" id="theme-toggle" style="padding:2px 8px;font-size:12px">Show</button>
+    </div>
+    <div id="theme-container" style="display:none; flex-direction:column; gap:10px;">
+      <input type="search" id="tq" placeholder="Search themes" aria-label="Search themes">
+      <div id="themes"></div>
+    </div>
+
+    <div class="row" style="margin-top:8px"><h3 style="margin:0">Top bar layout</h3></div>
+    <div id="tb-layouts">
+      <button class="tbl" data-tb="compact" type="button">
+        <div class="tbl-mini tb-compact"><span class="m-logo">rwuChat</span><span class="m-btn"></span><span class="m-tabs"></span><span class="m-btn"></span><span class="m-gear"></span></div>
+        <span>Compact</span>
+      </button>
+      <button class="tbl" data-tb="centered" type="button">
+        <div class="tbl-mini tb-centered"><span class="m-logo">rwuChat</span><span class="m-btn"></span><span class="m-tabs"></span><span class="m-btn"></span><span class="m-gear"></span></div>
+        <span>Centered</span>
+      </button>
+      <button class="tbl" data-tb="logoless" type="button">
+        <div class="tbl-mini tb-logoless"><span class="m-logo"></span><span class="m-btn"></span><span class="m-tabs"></span><span class="m-btn"></span><span class="m-gear"></span></div>
+        <span>Logo-less</span>
+      </button>
+      <button class="tbl" data-tb="dot" type="button">
+        <div class="tbl-mini tb-dot"><span class="m-logo"></span><span class="m-btn"></span><span class="m-tabs"></span><span class="m-btn"></span><span class="m-gear"></span></div>
+        <span>Dot</span>
+      </button>
+    </div>
+
+    <div class="row" style="margin-top:8px"><h3 style="margin:0">Connect your own AI</h3></div>
+    <div class="row col">
+      <input type="search" id="ai-url" placeholder="Server URL (https://your-backend.ngrok.app)" aria-label="Server URL">
+      <input type="search" id="ai-key" placeholder="API key (sk-...)" aria-label="API key">
+      <input type="search" id="ai-mcp" placeholder="MCP server URL (optional, auto-connects)" aria-label="MCP URL">
+      <div class="row">
+        <select id="ai-mode" aria-label="Error mode">
+          <option value="local">Local (verbose errors)</option>
+          <option value="cloud">Cloud (simple errors)</option>
+        </select>
+        <span style="flex:1"></span>
+        <button class="ghost" id="ai-clear">Clear</button>
+        <button class="primary" id="ai-save">Save</button>
+      </div>
+      <span id="ai-config-status" style="font-size:12px;color:var(--muted);font-weight:600"></span>
+    </div>
+
+    <div class="row" style="margin-top:8px"><h3 style="margin:0">Py Environment</h3></div>
+    <div class="row">
+      <span id="py-status" class="py-status loading">Checking…</span>
+      <span style="flex:1"></span>
+      <button class="ghost" id="py-install" style="display:none">Install</button>
+      <button class="ghost" id="py-uninstall" style="display:none">Uninstall</button>
+    </div>
+
+    <div class="row"><span>Accent color</span><div><input type="color" id="acc"><button class="ghost" id="accr">Reset</button></div></div>
+    <div class="row"><span>Font</span>
+      <select id="font"><option value="bold">Manrope Bold</option><option value="manrope">Manrope</option><option value="system">System</option><option value="serif">Serif</option><option value="mono">Mono</option></select></div>
+    <div class="row"><span>Text size</span><div><input type="range" id="fs" min="14" max="22"><output id="fso"></output></div></div>
+    <div class="row"><label for="ln">Line numbers in code blocks</label><input type="checkbox" id="ln"></div>
+    <div class="row"><label for="es">Enter sends (otherwise Ctrl/Cmd+Enter)</label><input type="checkbox" id="es"></div>
+    <div class="row"><button class="ghost" id="exp">Export chat</button><button class="ghost" id="reset">Reset settings</button></div>
+  </div>
+</dialog>
+
+<div id="toast" role="status" hidden></div>
+
+<dialog id="pal">
+  <input id="pq" type="search" placeholder="Search all chats" aria-label="Search chats" autocomplete="off">
+  <div id="pl"></div>
+</dialog>
+
+<div id="runner">
+  <div class="r-panel">
+    <div class="r-head" id="runner-title">HTML Preview</div>
+    <div class="r-bar">
+      <button id="runner-restart">Restart</button>
+      <button id="runner-download">Download</button>
+      <span style="flex:1"></span>
+      <button id="runner-console">Open Console</button>
+      <button id="runner-close">Close</button>
+    </div>
+    <div class="r-content">
+      <iframe id="runner-iframe" class="r-frame" sandbox="allow-scripts allow-modals allow-forms allow-same-origin"></iframe>
+      <div class="r-console">
+        <div class="c-head">
+          Console
+          <button class="c-clear" id="console-clear">Clear</button>
+        </div>
+        <div class="c-body" id="console-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<dialog id="mcp-dlg">
+  <div class="dh"><h2>MCP Server</h2><button class="ghost" id="mcp-close">Close</button></div>
+  <div class="ds">
+    <h3>Connect to a Model Context Protocol server</h3>
+    <div class="row col">
+      <input type="search" id="mcp-url" placeholder="https://parallel.ai/mcp" aria-label="Server URL">
+      <input type="search" id="mcp-auth" placeholder="Auth header (optional, e.g. Bearer sk-...)" aria-label="Auth header">
+      <div class="row">
+        <span style="font-size:12px;color:var(--muted)">Try parallel.ai/mcp · wispbyte.com/mcp</span>
+        <span style="flex:1"></span>
+        <button class="ghost" id="mcp-disconnect" style="display:none">Disconnect</button>
+        <button class="primary" id="mcp-connect">Connect</button>
+      </div>
+    </div>
+    <div id="mcp-status" style="font-size:13px;color:var(--muted);min-height:20px"></div>
+    <div id="mcp-tools"></div>
+  </div>
+</dialog>
+<div id="ctx">
+  <button data-c="close">Close this tab</button>
+  <button data-c="close-others">Close all other tabs</button>
+  <button data-c="close-all" class="danger">Close all tabs</button>
+  <button data-c="rename">Rename tab</button>
+</div>
+<script src="js/state.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/markdown.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/mcp.js"></script>
+<script src="js/pyodide.js"></script>
+<script src="js/input.js"></script>
+<script src="js/runner.js"></script>
+<script src="js/tabs.js"></script>
+<script src="js/search.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/init.js"></script>
+</body>
+</html>
