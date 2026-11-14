@@ -1,0 +1,9 @@
+# HTML must always be revalidated so hashed asset links update immediately.
+<FilesMatch "\.(html|htm)$">
+  Header set Cache-Control "no-cache, must-revalidate"
+</FilesMatch>
+
+# Hashed assets are immutable — safe to cache hard.
+<FilesMatch "\.[0-9a-f]{8}\.(js|css)$">
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
