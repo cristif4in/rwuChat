@@ -19,6 +19,15 @@ function cleanUrl(){
 (async () => {
   cleanUrl();
   updateModeLabel();
+  // chat.js defines loadConfig/loadSettingsConfig. If it 404'd or got blocked
+  // by the host, say so clearly instead of a cryptic ReferenceError.
+  if (typeof loadConfig !== 'function') {
+    const el = document.getElementById('mode-label');
+    if (el) el.textContent = 'script error';
+    console.error('[Startup] js/chat.js failed to load — re-upload the js/ folder to the host (a 404/403 on chat.js breaks everything that follows).');
+    toast('Startup failed: js/chat.js did not load. Re-upload the site files to your host.');
+    return;
+  }
   await loadConfig();
   apply();
   render();
