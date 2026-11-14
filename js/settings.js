@@ -98,6 +98,14 @@ dlg.onclick=e=>{if(e.target===dlg)dlg.close()};
 
 /* ---- Connect your own AI ---- */
 function syncAIConfig() {
+  // chat.js may fail to load on some hosts — degrade gracefully instead of
+  // throwing and killing every later handler.
+  if (typeof loadSettingsConfig !== 'function') {
+    const st=$('#ai-config-status');if(!st)return;
+    st.textContent='AI config unavailable — js/chat.js failed to load from the host';
+    st.style.color='var(--bad)';
+    return;
+  }
   const saved = loadSettingsConfig();
   if (saved) {
     const urlEl=$('#ai-url'),keyEl=$('#ai-key'),mcpEl=$('#ai-mcp'),modeEl=$('#ai-mode');
@@ -120,6 +128,7 @@ function syncAIConfig() {
 }
 
 if($('#ai-save'))$('#ai-save').onclick=()=>{
+  if(typeof saveSettingsConfig!=='function'){toast('AI config unavailable — js/chat.js failed to load.');return}
   const cfg={
     url:($('#ai-url').value||'').trim(),
     key:($('#ai-key').value||'').trim(),
