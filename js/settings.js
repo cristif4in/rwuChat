@@ -34,7 +34,7 @@ $('#gear').onclick=()=>{$('#tq').value='';sync();themes();syncTbLayouts();update
 $("#py-install").onclick=()=>{
   PY.installed=true;
   try{localStorage.setItem("chat.py","1")}catch{}
-  loadPyodideInstance();
+  loadPyWorker();
 };
 $("#py-uninstall").onclick=()=>{
   uninstallPyodide();
@@ -133,7 +133,11 @@ if($('#ai-save'))$('#ai-save').onclick=()=>{
     url:($('#ai-url').value||'').trim(),
     key:($('#ai-key').value||'').trim(),
     mcp:($('#ai-mcp').value||'').trim(),
-    mode:($('#ai-mode').value||'local')
+    mode:($('#ai-mode').value||'local'),
+    // Preserve model/think picks made in the + → Models menu.
+    model:CONFIG.model||'',
+    think:CONFIG.think||{},
+    customModels:CONFIG.customModels||[]
   };
   saveSettingsConfig(cfg);
   CONFIG.url=cfg.url;CONFIG.key=cfg.key;CONFIG.mcp=cfg.mcp;CONFIG.mode=cfg.mode;

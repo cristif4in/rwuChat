@@ -1,9 +1,14 @@
-const inl=s=>s.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+// Inline: code, bold, and the AI-optional colored text !!color{text}.
+// The color is validated to bare CSS names or #hex only — nothing else can
+// sneak into the style attribute. Applied last so the inner text can
+// itself contain <strong>/<code> from the earlier passes.
+const inl=s=>s.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+  .replace(/!!([a-z]+|#[0-9a-f]{3,8})\{([^{}]*)\}/gi,(m,c,t)=>`<span style="color:${c.toLowerCase()}">${t}</span>`);
 
 function tbl(rows){
   const cells=r=>r.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>c.trim());
   const head=cells(rows[0]),body=rows.slice(2).map(cells);
-  return '<div class="tbl-wrap"><table class="tbl"><thead><tr>'+head.map(h=>'<th>'+inl(esc(h))+'</th>').join('')+'</tr></thead><tbody>'+
+  return '<div class="tbl-wrap"><table class="md-tbl"><thead><tr>'+head.map(h=>'<th>'+inl(esc(h))+'</th>').join('')+'</tr></thead><tbody>'+
     body.map(r=>'<tr>'+r.map(c=>'<td>'+inl(esc(c))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 }
 const isSep=l=>/^[\s|:-]+$/.test(l)&&l.includes('-');
@@ -105,8 +110,46 @@ function block({info,lines},streaming){
   const isPy = lang === 'python' || lang === 'py' || name.endsWith('.py');
   const runBtn = isHtml ? `<button data-a="run" class="run-btn" style="margin-left:8px;background:${streaming?'transparent':'rgba(255,255,255,0.15)'};color:${streaming?'var(--muted)':'#fff'};border:1px solid ${streaming?'transparent':'rgba(255,255,255,0.3)'};transition:all 0.2s">Run</button>` : '';
   const pyRunBtn = isPy ? `<button data-a="pyrun" class="run-btn py-run-btn" style="margin-left:8px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);transition:all 0.2s">Run</button>` : '';
-  return `<div class="cb${streaming?' streaming':''}"><div class="cbh"><span class="fname" contenteditable="true" spellcheck="false" title="Click to rename" data-d="${esc(name)}">${esc(name)}</span><span class="lang">${esc(lang)}</span><span class="cnt">${lines.length} line${lines.length===1?'':'s'}</span><span class="sp"></span><button data-a="cc">Copy</button><button data-a="dl">Download</button>${runBtn}${pyRunBtn}</div><div class="cb-body"><div class="cb-inner"><pre><code>${lines.map(l=>`<span class="l">${esc(l)}</span>`).join('')}</code></pre></div></div></div>`;
+  return `<div class="cb${streaming?' streaming':''}" data-lang="${esc(lang)}"><div class="cbh"><span class="fname" contenteditable="true" spellcheck="false" title="Click to rename" data-d="${esc(name)}">${esc(name)}</span><span class="lang">${esc(lang)}</span><span class="cnt">${lines.length} line${lines.length===1?'':'s'}</span><span class="sp"></span><button data-a="cc">Copy</button><button data-a="dl">Download</button>${runBtn}${pyRunBtn}</div><div class="cb-body"><div class="cb-inner"><pre><code>${lines.map(l=>`<span class="l">${esc(l)}</span>`).join('')}</code></pre></div></div></div>`;
 }
+
+/* ---- Syntax highlighting (highlight.js, lazy-loaded from CDN) ---- */
+const HLJS_CDN='https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0';
+let hljsReady=null;
+function ensureHljs(){
+  if(hljsReady)return hljsReady;
+  hljsReady=new Promise((resolve,reject)=>{
+    const link=document.createElement('link');
+    link.rel='stylesheet';link.href=HLJS_CDN+'/styles/github-dark.min.css';
+    document.head.appendChild(link);
+    const s=document.createElement('script');
+    s.src=HLJS_CDN+'/highlight.min.js';
+    s.onload=()=>resolve(window.hljs);
+    s.onerror=()=>{hljsReady=null;reject(new Error('highlight.js failed to load'))};
+    document.head.appendChild(s);
+  });
+  return hljsReady;
+}
+// Our lang tag -> hljs language; null when unsupported (leave plain).
+function hljsLangOf(lang){
+  if(!window.hljs||!lang)return null;
+  const map={htm:'xml',html:'xml',js:'javascript',ts:'typescript',py:'python',sh:'bash',shell:'bash',yml:'yaml',md:'markdown'};
+  const l=map[lang]||lang;
+  return window.hljs.getLanguage(l)?l:null;
+}
+// Highlight a finished code block in place: one hljs call per line span,
+// preserving the line-number layout. Skipped while streaming and
+// deduped per language via data-hl.
+function highlightCb(cb){
+  if(cb.classList.contains('streaming'))return;
+  const l=hljsLangOf(cb.dataset.lang);
+  if(!l||cb.dataset.hl===l)return;
+  cb.dataset.hl=l;
+  cb.querySelectorAll('.l').forEach(el=>{
+    try{el.innerHTML=window.hljs.highlight(el.textContent,{language:l,ignoreIllegals:true}).value}catch{}
+  });
+}
+function highlightCbSoon(cb){ ensureHljs().then(()=>highlightCb(cb)).catch(()=>{}) }
 
 function cmdBlock({lines},streaming){
   const cmd=(lines[0]||'').replace(/^\$\s*/,'');
@@ -143,7 +186,7 @@ function parseDiff({info,lines}){
     else if(raw[0]==='-'){cur.rows.push({t:'-',n:oldN++,s:raw.slice(1)});cur.del++}
     else{const s=raw[0]===' '?raw.slice(1):raw;cur.rows.push({t:' ',n:newN++,s});oldN++}
   }
-  if(!files.length)files.push({name:'changes',note:'',rows:[],add:0,del:0});
+  if(!files.length)files.push({name:'changes',note:'',rows:[],add:0,del:0,pseudo:true});
   const add=files.reduce((a,f)=>a+f.add,0),del=files.reduce((a,f)=>a+f.del,0);
   const tm=info.match(/title="([^"]*)"/);
   const label=tm?tm[1]:'Edited '+files.length+' file'+(files.length===1?'':'s');
@@ -254,6 +297,9 @@ function buildResultBlocks(files){
   const msgs=cur().msgs;
   const parts=[];
   for(const file of files){
+    // A headerless diff (no +++ lines) renders as a plain diff summary —
+    // there is no filename to look up, so no note and no result block.
+    if(file.pseudo)continue;
     const orig=findOriginalFile(file.name,msgs);
     let newContent,lang;
     if(orig){
@@ -326,6 +372,29 @@ function md(src){
   return out;
 }
 
+// Incremental variant of md() for streaming. Everything up to the LAST
+// CLOSED fence can never change again (append-only source), so it is
+// parsed once and cached; only the live tail after it is re-parsed per
+// delta. Turns the per-token O(n²) full re-parse into O(tail).
+// cache = {blocks:[], parsedLen:0} — owned by the caller, one per stream.
+function mdStream(src,cache){
+  const lines=src.split('\n');
+  let inCode=false,boundary=0,off=0;
+  for(const line of lines){
+    if(/^```/.test(line)){
+      if(inCode){inCode=false;boundary=off+line.length+1}
+      else inCode=true;
+    }
+    off+=line.length+1;
+  }
+  // A still-open fence means the tail includes it — don't advance past it.
+  if(!inCode&&boundary>cache.parsedLen){
+    cache.blocks.push(...md(src.slice(cache.parsedLen,boundary)));
+    cache.parsedLen=boundary;
+  }
+  return cache.blocks.concat(md(src.slice(cache.parsedLen)));
+}
+
 function renderBlocks(container,blocks){
   if(!container._anim)container._anim=new Set();
   const anim=container._anim;
@@ -340,6 +409,7 @@ function renderBlocks(container,blocks){
     node._h=html;
     if(c)container.replaceChild(node,c);else container.appendChild(node);
     const isBlock=node.classList.contains('cb')||node.classList.contains('run');
+    if(node.classList.contains('cb'))highlightCbSoon(node);
     if(isBlock&&!node.classList.contains('streaming')&&!anim.has(i)){
       anim.add(i);
       enter(node);

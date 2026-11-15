@@ -1,5 +1,8 @@
 /* ---- MCP (Model Context Protocol) ---- */
-function mcpBase() { return CONFIG.url.replace(/\/$/, ''); }
+function mcpBase() {
+  if (!CONFIG.url) throw new Error('MCP requires a server URL (key-only/Gemini mode has no backend to proxy it).');
+  return CONFIG.url.replace(/\/$/, '');
+}
 
 async function mcpConfigure(url, auth){
   const res = await fetch(mcpBase() + '/mcp', {

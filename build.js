@@ -45,13 +45,30 @@ function hashedAsset(rel){
 
 // Grab index.html, find every local css/js reference, rewrite to hashed.
 let html=fs.readFileSync(path.join(SRC,'index.html'),'utf8');
+const hashed=[];  // asset names as they land in dist/, for the SW precache list
 html=html.replace(/(?:href|src)="((?:css|js)\/[A-Za-z0-9_\-]+?\.(?:css|js))(?:\?[^"]*)?"/g,(m,rel)=>{
-  const hashed=hashedAsset(rel);
+  const hashedName=hashedAsset(rel);
+  hashed.push(hashedName);
   const attr=m.startsWith('href')?'href':'src';
-  return `${attr}="${hashed}"`;
+  return `${attr}="${hashedName}"`;
 });
 fs.mkdirSync(DIST,{recursive:true});
+// Pyodide worker: hashed + reference rewritten (not a <script src>, so the
+// main regex above can't see it).
+const workerAsset=hashedAsset('js/py-worker.js');
+hashed.push(workerAsset);
+html=html.replace(/data-py-worker="js\/py-worker\.js"/,()=>`data-py-worker="${workerAsset}"`);
 fs.writeFileSync(path.join(DIST,'index.html'),html);
+
+// Generate dist/sw.js from js/sw.js, injecting the hashed asset list at the
+// /*__ASSETS__*/ marker. sw.js itself is never hashed/cached hard — the
+// browser must re-fetch it to discover new precache lists.
+const swSrc=fs.readFileSync(path.join(SRC,'js','sw.js'),'utf8');
+const swOut=swSrc.replace(
+  /\/\*__ASSETS__\*\/\[.*?\/\*__ASSETS__\*\//,
+  '/*__ASSETS__*/'+JSON.stringify(['./',...hashed])+'/*__ASSETS__*/'
+);
+fs.writeFileSync(path.join(DIST,'sw.js'),swOut);
 
 // Non-hashed files that belong on the host.
 copyPlain('.htaccess');
@@ -60,5 +77,5 @@ copyPlain('ai.key.example');
 
 const listed=fs.readdirSync(path.join(DIST,'js')).concat(fs.readdirSync(path.join(DIST,'css')).map(f=>'css/'+f));
 console.log('Build complete → dist/');
-console.log('  index.html rewritten, '+listed.length+' hashed assets.');
+console.log('  index.html rewritten, '+listed.length+' hashed assets, sw.js precache list injected.');
 console.log('Upload the CONTENTS of dist/ to your host (htdocs).');

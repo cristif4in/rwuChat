@@ -29,6 +29,7 @@ function cleanUrl(){
     return;
   }
   await loadConfig();
+  await loadState();
   apply();
   render();
   setBusy(false);
@@ -36,6 +37,12 @@ function cleanUrl(){
   mcpUpdateChip();
   autoLoadPyodide();
   input.focus();
+  // Service worker: precached hashed assets + offline fallback. Not on
+  // file:// (SWs require http(s) anyway).
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(e =>
+      console.warn('[SW] registration failed (non-fatal):', e.message));
+  }
   // If MCP URL was in the key file, auto-connect
   if (CONFIG.mcp && !MCP.url) {
     MCP.url = CONFIG.mcp;

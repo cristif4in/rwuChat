@@ -34,6 +34,12 @@ msgs.addEventListener('click',async e=>{
     if(ch.auto&&ch.msgs.length===1)ch.title=title(v);
     fill(m,o);markLast();tabsRender();save();respond();return;
   }
+  if(a==='cont'){
+    if(busy)return;
+    if(!m._msg||!m._msg.unfinished)return;
+    respond(true);
+    return;
+  }
   if(a==='rg'){
     if(busy)return;
     if(m._msg){const i=ch.msgs.indexOf(m._msg);if(i>=0)ch.msgs.length=i}
@@ -66,7 +72,12 @@ msgs.addEventListener('click',async e=>{
     $('#runner').classList.remove('has-console');
     $('#console-body').innerHTML = '';
     
-    // Inject console proxy
+    // Console proxy + strict CSP. The CSP is injected FIRST so it's the
+    // baseline policy even if the code brings its own: everything inline
+    // works, but NOTHING may load from the network — the preview can't
+    // reach outside the .html itself.
+    const CSP = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' data:; script-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'">`;
+
     const proxyScript = `<script>
       (function(){
         const _log = console.log, _warn = console.warn, _error = console.error, _info = console.info;
@@ -82,9 +93,17 @@ msgs.addEventListener('click',async e=>{
         console.info = function(){ send('info', arguments); _info.apply(console, arguments); };
       })();
     <\/script>`;
-    
+
+    const inject = CSP + proxyScript;
+    // Put the CSP + console proxy into the document's <head> when the code
+    // has one (keeps doctype intact, avoids quirks mode); otherwise wrap.
+    let doc = code;
+    if (/<head[^>]*>/i.test(doc)) doc = doc.replace(/<head[^>]*>/i, m => m + inject);
+    else if (/<html[^>]*>/i.test(doc)) doc = doc.replace(/<html[^>]*>/i, m => m + '<head>' + inject + '</head>');
+    else doc = '<!DOCTYPE html><html><head>' + inject + '</head><body>' + doc + '</body></html>';
+
     const iframe = $('#runner-iframe');
-    iframe.srcdoc = proxyScript + code;
+    iframe.srcdoc = doc;
     $('#runner').classList.remove('py-mode');
     $('#runner').dataset.mode='html';
     $('#runner').classList.add('open');
@@ -156,6 +175,42 @@ $('#runner-console').onclick = () => {
 $('#console-clear').onclick = () => {
   $('#console-body').innerHTML = '';
 };
+
+/* ---- Console drag-resize (left edge of the console panel) ---- */
+(() => {
+  const handle = $('#runner-resize'), cons = $('.r-console'), panel = $('.r-panel');
+  if(!handle)return;
+  let startX = 0, startW = 0, dragging = false;
+  handle.addEventListener('pointerdown', e => {
+    dragging = true; startX = e.clientX; startW = cons.offsetWidth;
+    handle.classList.add('drag');
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  handle.addEventListener('pointermove', e => {
+    if(!dragging)return;
+    const rect = panel.getBoundingClientRect();
+    // Growing the console means moving its left edge LEFT.
+    const w = Math.min(Math.max(startW + (startX - e.clientX), 180), rect.width - 220);
+    cons.style.width = w + 'px';
+  });
+  const end = () => {
+    if(!dragging)return;
+    dragging = false; handle.classList.remove('drag');
+    try{localStorage.setItem('chat.rw', $('.r-console').style.width)}catch{}
+  };
+  handle.addEventListener('pointerup', end);
+  handle.addEventListener('pointercancel', end);
+  // Restore saved width when the console opens.
+  const origToggle = $('#runner-console').onclick;
+  $('#runner-console').onclick = () => {
+    origToggle();
+    if($('#runner').classList.contains('has-console')){
+      const saved = localStorage.getItem('chat.rw');
+      if(saved)cons.style.width = saved;
+    }
+  };
+})();
 
 window.addEventListener('message', e => {
   if (e.data && e.data.__console) {

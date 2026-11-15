@@ -12,15 +12,15 @@
 /* Tables/lists inside callouts blend with the callout's accent color */
 .callout .tbl-wrap{margin-top:6px;border-color:color-mix(in srgb,var(--accent) 30%,transparent);background:none}
 .callout .tbl-wrap:first-child{margin-top:0}
-.callout .tbl th{color:var(--accent)}
-.callout .tbl td{color:color-mix(in srgb,var(--ink) 70%,transparent)}
-.callout .tbl tbody tr:hover td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.callout .md-tbl th{color:var(--accent)}
+.callout .md-tbl td{color:color-mix(in srgb,var(--ink) 70%,transparent)}
+.callout .md-tbl tbody tr:hover td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
 .cb{margin:0 0 .9em;min-width:0;transition:opacity .32s ease}
 .cb.enter{opacity:0}
-.cb-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1)}
+.cb-body{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:1fr;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1)}
 .cb.collapsed .cb-body{grid-template-rows:0fr}
 .cb.enter .cb-body{grid-template-rows:0fr}
-.cb-inner{overflow:clip;min-height:0}
+.cb-inner{overflow:clip;min-height:0;min-width:0}
 .cbh{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;min-height:36px;
      padding:3px 6px 3px 14px;background:var(--codeh);border-radius:10px 10px 0 0;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
 .cbh:hover{background:color-mix(in srgb,var(--ink) 18%,var(--bg))}
@@ -63,7 +63,7 @@ body.no-ln .l{padding-left:16px}
 .run-btn:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .run-btn:last-child{border:1px solid var(--line);color:var(--ink)}
 .run-btn:last-child:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
-.run-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1)}
+.run-body{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:1fr;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1)}
 .run:not(.open) .run-body{grid-template-rows:0fr}
 .run.enter .run-body{grid-template-rows:0fr}
 .run-inner{overflow:clip;min-height:0;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;
@@ -178,11 +178,18 @@ body.busy .tab.on .gd{animation:pulse 1s infinite}
 .mcp-chip i{width:6px;height:6px;border-radius:50%;background:var(--ok)}
 /* Top-bar layout picker in settings */
 #tb-layouts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.tbl{padding:8px 6px 6px;border:1px solid var(--line);border-radius:10px;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
-.tbl:hover{background:var(--bg)}
-.tbl.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.tbl span{font-size:12px;font-weight:600;color:var(--muted)}
-.tbl.on span{color:var(--ink)}
+#tb-layouts .tbl{padding:8px 6px 6px;border:1px solid var(--line);border-radius:10px;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+#tb-layouts .tbl:hover{background:var(--bg)}
+#tb-layouts .tbl.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+#tb-layouts .tbl span{font-size:12px;font-weight:600;color:var(--muted)}
+#tb-layouts .tbl.on span{color:var(--ink)}
+
+/* Markdown tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin:.4em 0 .9em}
+.md-tbl{border-collapse:collapse;width:100%;font-size:.92em}
+.md-tbl th,.md-tbl td{padding:8px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.md-tbl thead th{font-weight:700;background:color-mix(in srgb,var(--ink) 5%,var(--bg));border-bottom:2px solid var(--line)}
+.md-tbl tbody tr:last-child td{border-bottom:0}
 .tbl-mini{width:100%;height:30px;display:flex;align-items:center;gap:4px;padding:0 5px;background:var(--bg);border-radius:6px;overflow:hidden}
 .m-logo{font-size:8px;font-weight:800;color:var(--ink);white-space:nowrap;flex:none}
 .m-btn{width:12px;height:12px;border-radius:3px;background:color-mix(in srgb,var(--ink) 18%,transparent);flex:none}
@@ -232,7 +239,7 @@ body.py-ready .py-run-btn{display:inline-flex !important}
 /* Runner in Python mode: hide iframe, console takes full width */
 #runner.py-mode .r-frame{display:none}
 #runner.py-mode .r-console{width:100%;display:flex}
-#runner.py-mode.has-console .r-panel{width:85vw;height:80vh}
+#runner.py-mode.has-console .r-panel{width:92vw;height:90vh}
 #runner.py-mode.has-console .r-console{width:100%}
 #runner.py-mode #runner-console{display:none}
 /* Settings: Py Environment status colors */
@@ -242,7 +249,7 @@ body.py-ready .py-run-btn{display:inline-flex !important}
 /* HTML Runner Modal & Console */
 #runner{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
 #runner.open{opacity:1;pointer-events:auto}
-.r-panel{width:85vw;height:80vh;background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);transform:translateY(10px);transition:transform .2s, width .3s cubic-bezier(.4,0,.2,1)}
+.r-panel{width:92vw;height:90vh;background:var(--surface);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);transform:translateY(10px);transition:transform .2s, width .3s cubic-bezier(.4,0,.2,1)}
 #runner.open .r-panel{transform:translateY(0)}
 .r-head{padding:8px 16px;background:color-mix(in srgb,var(--ink) 4%,var(--bg));border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:8px}
 .r-head .dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
@@ -253,8 +260,8 @@ body.py-ready .py-run-btn{display:inline-flex !important}
 .r-content{flex:1;display:flex;overflow:hidden}
 .r-frame{flex:1;border:0;width:100%;background:#fff;transition:width .3s cubic-bezier(.4,0,.2,1)}
 /* Console Sidebar */
-.r-console{width:0;flex:none;background:#1e1e1e;color:#d4d4d4;display:flex;flex-direction:column;border-left:1px solid var(--line);transition:width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;font-family:var(--mono);font-size:13px}
-#runner.has-console .r-panel{width:95vw}
+.r-console{position:relative;width:0;flex:none;background:#1e1e1e;color:#d4d4d4;display:flex;flex-direction:column;border-left:1px solid var(--line);transition:width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;font-family:var(--mono);font-size:13px}
+#runner.has-console .r-panel{width:97vw}
 #runner.has-console .r-frame{width:50%}
 #runner.has-console .r-console{width:50%}
 .c-head{padding:8px 12px;background:#2d2d2d;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;font-weight:600;color:#ccc;user-select:none}
@@ -267,3 +274,36 @@ body.py-ready .py-run-btn{display:inline-flex !important}
 .c-line.info{color:#60a5fa}
 .c-line.log{color:#d4d4d4}
 .c-icon{flex:none;width:14px;height:14px;margin-top:2px}
+
+/* ---- Thinking / reasoning panel ---- */
+.think{border:1px solid rgba(128,128,128,.25);border-radius:10px;margin:0 0 8px;overflow:hidden;background:rgba(128,128,128,.06)}
+.think-h{display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;user-select:none;color:var(--muted);font-weight:600;font-size:12px}
+.think-caret{transition:transform .15s;display:inline-block}
+.think:not(.open) .think-caret{transform:rotate(-90deg)}
+.think-b{display:none;padding:0 12px 10px;white-space:pre-wrap;word-break:break-word;color:var(--muted);max-height:260px;overflow-y:auto;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px;line-height:1.55}
+.think.open .think-b{display:block}
+
+/* Thinking preview in collapsed header — gray, max 2 lines. */
+.think-prev{flex:1;min-width:0;text-align:right;color:var(--muted);font-weight:400;font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+
+/* ---- Models menu (+ button) ---- */
+.mm-group{padding:2px 0}
+.mm-gname{padding:6px 12px 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.mm-model{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+.mm-model:hover{background:rgba(128,128,128,.12)}
+.mm-model.on{background:rgba(128,128,128,.18);font-weight:600}
+.mm-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mm-think{flex:none;font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid rgba(128,128,128,.4);background:transparent;color:var(--muted);cursor:pointer}
+.mm-think.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* Custom model entry row in the Models menu */
+.mm-add{display:flex;gap:6px;padding:6px 12px 4px}
+.mm-add input{flex:1;min-width:0;font-size:12px;padding:5px 8px;border:1px solid rgba(128,128,128,.35);border-radius:6px;background:transparent;color:var(--ink)}
+.mm-add button{flex:none;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid rgba(128,128,128,.35);background:transparent;color:var(--ink);cursor:pointer}
+.mm-add button:hover{background:rgba(128,128,128,.15)}
+.mm-del{flex:none;font-size:14px;line-height:1;padding:2px 6px;border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:4px}
+.mm-del:hover{color:var(--bad);background:rgba(255,0,0,.08)}
+
+/* Console drag handle (left edge of the console panel) */
+.r-resize{position:absolute;left:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:5}
+.r-resize:hover,.r-resize.drag{background:var(--accent);opacity:.6}

@@ -84,9 +84,25 @@ textarea::placeholder { color: var(--muted); }
 .sub-menu {
   position: absolute; bottom: -6px; left: 100%; margin-left: 4px;
   display: none;
+  max-height: 55vh; overflow-y: auto; overscroll-behavior: contain;
+  min-width: 260px;
+  scrollbar-width: thin;
+}
+/* Invisible bridge over the 4px gap so hover survives moving to the submenu. */
+.sub-menu::before {
+  content: ''; position: absolute; left: -6px; top: 0;
+  width: 6px; height: 100%;
 }
 .menu-item:hover .sub-menu { display: block; }
-.sub-menu .menu-item { gap: 10px; justify-content: flex-start; }
+/* Bridge over the submenu gap on the ITEM side (can't be inside the
+   scrollable submenu — it would be clipped by overflow). */
+#plus-menu .menu-item { position: relative; }
+#plus-menu .menu-item::after {
+  content: ''; position: absolute; right: -6px; top: 0;
+  width: 6px; height: 100%; display: none;
+}
+#plus-menu .menu-item:hover::after { display: block; }
+.sub-menu .menu-item { gap: 10px; justify-content: flex-start; white-space: normal; }
 .msg.user .tools{justify-content:flex-end;opacity:0;transition:opacity .12s}
 .msg.user:hover .tools,.msg.user:focus-within .tools{opacity:1}
 @media (hover:none){.msg.user .tools{opacity:1}}
@@ -99,3 +115,15 @@ body.busy [data-a=ed],body.busy [data-a=rg]{opacity:.35;pointer-events:none}
 .edbar{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:8px}
 .edbar span{margin-right:auto;font-size:13px;color:var(--muted);font-weight:600}
 .primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:6px 12px;font-size:14px;font-weight:700}
+
+/* Jump-to-latest button (above the composer, shown when scrolled up) */
+#follow-btn{
+  position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.25);
+  cursor:pointer;z-index:20;
+}
+#follow-btn:hover{border-color:var(--accent);color:var(--accent)}
+#follow-btn[hidden]{display:none}
