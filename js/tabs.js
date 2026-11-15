@@ -38,6 +38,16 @@ ctx.addEventListener('click', e => {
   ctx.classList.remove('open');
 });
 /* ---- Saved chats ---- */
+/* ---- URL sync: /chat/<id> so refresh lands on the same chat ---- */
+function chatUrl(id){
+  let p=location.pathname.replace(/\/index\.html$/,'');
+  p=p.replace(/\/chat\/[^/]+\/?$/,'');           // strip a previous /chat/<id>
+  if(!p.endsWith('/'))p+='/';
+  return p+'chat/'+id+location.hash;
+}
+function syncUrl(){
+  try{history.replaceState(null,'',chatUrl(curId))}catch{}
+}
 function tabsRender(){
   $('#tabs').innerHTML=chats.map(c=>`<div class="tab${c.id===curId?' on':''}${c._responding?' responding':''}${c._unread?' unread':''}" role="tab" tabindex="0" aria-selected="${c.id===curId}" data-id="${c.id}" title="${esc(c.title)}"><i class="gd"></i><span class="tt">${esc(c.title)}</span><button class="x" data-x aria-label="Delete chat" title="Hold to delete" tabindex="-1">×</button></div>`).join('');
   // Horizontally scroll #tabs to reveal the active tab WITHOUT touching

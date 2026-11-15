@@ -30,6 +30,12 @@ function cleanUrl(){
   }
   await loadConfig();
   await loadState();
+  // Deep link: /chat/<id> selects that chat if it exists.
+  const urlChat=location.pathname.match(/\/chat\/([A-Za-z0-9_-]+)\/?$/);
+  if(urlChat){
+    const c=chats.find(x=>x.id===urlChat[1]);
+    if(c)curId=c.id;
+  }
   apply();
   render();
   setBusy(false);

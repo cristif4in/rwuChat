@@ -8,6 +8,12 @@
   Header set Cache-Control "no-cache, must-revalidate"
 </FilesMatch>
 
+# SPA fallback: /chat/<id> must serve index.html so a refresh keeps the chat.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^chat/[A-Za-z0-9_-]+/?$ index.html [L]
+</IfModule>
+
 # Hashed assets are immutable — safe to cache hard.
 <FilesMatch "\.[0-9a-f]{8}\.(js|css)$">
   Header set Cache-Control "public, max-age=31536000, immutable"

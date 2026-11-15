@@ -559,6 +559,7 @@ function render(){
   if(ch._stream&&ch._stream.m){msgs.appendChild(ch._stream.m)}
   ch._unread=false;  // user is viewing this chat now
   markLast();empty.hidden=!!ch.msgs.length;tabsRender();toBottom();syncBusy();
+  if(typeof syncUrl==='function')syncUrl();
 }
 
 async function respond(cont){
